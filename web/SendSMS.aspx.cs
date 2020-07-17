@@ -42,6 +42,7 @@ namespace web
                 }
                 else
                 {
+                    //var res = Util.ValidateMobileNumbers(mobileno);
                     ____logconfig.Log_Write(____logconfig.LogLevel.DEBUG, 77, "username==>" + username + "password==>" + password + "mobileno===>" + mobileno + "semderID===>" + senderid + "cdmaheader==>" + cdmaheader + "message==>" + message);
                     var sql = "select username,passkey,Activated from userdetails where username like binary ?global.username and passkey like binary ?global.passkey";
                     var param = new string[2] { username, password };
@@ -57,9 +58,14 @@ namespace web
 
                                 foreach (string key in mobileno.Split(','))
                                 {
-                                    if (!dictionary.ContainsKey(key))
-                                        dictionary.Add(key, key);
+                                    var validatedMobileNo = Util.ValidateMobileNumbers(key);
+                                    if (validatedMobileNo != "" && !dictionary.ContainsKey(validatedMobileNo))
+                                        dictionary.Add(validatedMobileNo, validatedMobileNo);
                                 }
+
+                                if (dictionary.Count == 0)
+                                    Response.Write("Code=0 Invalid Mobile Number");
+
                                 string mobile_no = string.Join(",", dictionary.Keys.ToList<string>());
                                 if (cdmaheader == null)
                                     cdmaheader = senderid;

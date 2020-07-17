@@ -6,6 +6,8 @@ using System.Net;
 using System.Web;
 using System.Configuration;
 using sms_submit;
+using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace web.classes
 {
@@ -48,6 +50,17 @@ namespace web.classes
                 return "";
             }
 
+        }
+
+        public static string ValidateMobileNumbers(string mobileNo)
+        {
+            string result = Regex.Replace(mobileNo, @"[^\d]", ""); //replace special character
+            result = long.Parse(result).ToString();// remove leading 0's
+            result = (result.StartsWith("91") && result.Length > 10) ? result.Substring(2, result.Length-2) : result;// This will have 10 digit mobile number
+            result = (result.StartsWith("6") || result.StartsWith("7") || result.StartsWith("8") || result.StartsWith("9")) ? result : "";
+            if (result == "" || result.Substring(1, result.Length-1).Distinct().Count() == 1) // check remaining character sare same
+                return "";
+            return result;
         }
     }
 }
