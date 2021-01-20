@@ -42,50 +42,75 @@ namespace web
                 }
                 else
                 {
+
                     //var res = Util.ValidateMobileNumbers(mobileno);
                     ____logconfig.Log_Write(____logconfig.LogLevel.DEBUG, 77, "username==>" + username + "password==>" + password + "mobileno===>" + mobileno + "semderID===>" + senderid + "cdmaheader==>" + cdmaheader + "message==>" + message);
-                    var sql = "select username,passkey,Activated from userdetails where username like binary ?global.username and passkey like binary ?global.passkey";
+                    var sql = "select user_id,username,passkey,Activated from user_master where username like binary ?global.username and passkey like binary ?global.passkey";
                     var param = new string[2] { username, password };
                     DataSet dataSet = DL.DL_ExecuteQuery(sql, param);
                     if (dataSet.Tables[0].Rows.Count > 0)
                     {
+                        var userId = dataSet.Tables[0].Rows[0]["user_id"].ToString();
+                        string messageid = dataSet.Tables[0].Rows[0]["username"].ToString() + "-" + this.GenerateId();
+                        var isUnicode = Util.ContainsUnicodeCharacter(message);
                         if (dataSet.Tables[0].Rows[0]["Activated"].ToString() == "1")
                         {
-                            if (Util.MatchTemplate(username, senderid, message))
+                            Dictionary<string, string> dictionary = new Dictionary<string, string>();
+
+                            foreach (string key in mobileno.Split(','))
                             {
-
-                                Dictionary<string, string> dictionary = new Dictionary<string, string>();
-
-                                foreach (string key in mobileno.Split(','))
-                                {
-                                    var validatedMobileNo = Util.ValidateMobileNumbers(key);
-                                    if (validatedMobileNo != "" && !dictionary.ContainsKey(validatedMobileNo))
-                                        dictionary.Add(validatedMobileNo, validatedMobileNo);
-                                }
-
-                                if (dictionary.Count == 0)
-                                    Response.Write("Code=0 Invalid Mobile Number");
-
+                                var validatedMobileNo = Util.ValidateMobileNumbers(key);
+                                if (validatedMobileNo != "" && !dictionary.ContainsKey(validatedMobileNo))
+                                    dictionary.Add(validatedMobileNo, validatedMobileNo);
+                            }
+                            if (dictionary.Count != 0)
+                            {
                                 string mobile_no = string.Join(",", dictionary.Keys.ToList<string>());
                                 if (cdmaheader == null)
                                     cdmaheader = senderid;
 
-                                string messageid = dataSet.Tables[0].Rows[0]["username"].ToString() + "-" + this.GenerateId();
-                                int num = importnum.importdata(username, password, senderid, cdmaheader, message, mobileno, messageid);
-                                if (num > 0)
-                                    this.Response.Write("MessageSent GUID=\"" + messageid + "\" SUBMITDATE=\"" + DateTime.Now.GetDateTimeFormats()[84] + "\"");
+                                if (isUnicode)
+                                {
+                                    int num = importnum.importdata(username, password, senderid, cdmaheader, message, mobileno, messageid, 2);
+                                    if (num > 0)
+                                        this.Response.Write("MessageSent GUID=\"" + messageid + "\" SUBMITDATE=\"" + DateTime.Now.GetDateTimeFormats()[84] + "\"");
+                                    else
+                                        this.Response.Write("Code=0 SendSMS Pageload");
+
+                                }
+                                else if (Util.MatchTemplate(username, senderid, message))
+                                {
+
+                                    int num = importnum.importdata(username, password, senderid, cdmaheader, message, mobileno, messageid, 0);
+                                    if (num > 0)
+                                        this.Response.Write("MessageSent GUID=\"" + messageid + "\" SUBMITDATE=\"" + DateTime.Now.GetDateTimeFormats()[84] + "\"");
+                                    else
+                                        this.Response.Write("Code=0 SendSMS Pageload");
+
+
+                                }
                                 else
-                                    this.Response.Write("Code=0 SendSMS Pageload");
+                                {
+                                    importnum.ImportInvalidRequest(userId, username, messageid, senderid, message, DateTime.Now.ToString("yyyyMMddHHmmss"), mobileno, "TEMPLATE FAILED.", isUnicode ? "2" : "");
+                                    this.Response.Write("Code=0 Template Matching failed");
+                                }
                             }
                             else
-                                this.Response.Write("Code=0 Template Matching failed");
-
+                            {
+                                importnum.ImportInvalidRequest(userId, username, messageid, senderid, message, DateTime.Now.ToString("yyyyMMddHHmmss"), mobileno, "INVALID MOBILE FAILED.", isUnicode ? "2" : "");
+                                Response.Write("Code=0 Invalid Mobile Number");
+                            }
                         }
                         else
+                        {
+                            importnum.ImportInvalidRequest(userId, username, messageid, senderid, message, DateTime.Now.ToString("yyyyMMddHHmmss"), mobileno, "USED DEACTIVE FAILED.", isUnicode ? "2" : "");
                             this.Response.Write("Code=0 User Account De-Activated");
+                        }
                     }
                     else
+                    {
                         this.Response.Write("Invalid username or password");
+                    }
                 }
             }
             catch (Exception ex)
