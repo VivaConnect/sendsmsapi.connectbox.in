@@ -91,19 +91,19 @@ namespace web
                                 }
                                 else
                                 {
-                                    importnum.ImportInvalidRequest(userId, username, messageid, senderid, message, DateTime.Now.ToString("yyyyMMddHHmmss"), mobileno, "TEMPLATE FAILED.", isUnicode ? "2" : "");
+                                    importnum.ImportInvalidRequest(userId, username, messageid, senderid, message, DateTime.Now.ToString("yyyyMMddHHmmss"), mobileno, "TEMPLATE FAILED.", isUnicode ? "2" : "", 1);
                                     this.Response.Write("Code=0 Template Matching failed");
                                 }
                             }
                             else
                             {
-                                importnum.ImportInvalidRequest(userId, username, messageid, senderid, message, DateTime.Now.ToString("yyyyMMddHHmmss"), mobileno, "INVALID MOBILE FAILED.", isUnicode ? "2" : "");
+                                importnum.ImportInvalidRequest(userId, username, messageid, senderid, message, DateTime.Now.ToString("yyyyMMddHHmmss"), mobileno, "INVALID MOBILE FAILED.", isUnicode ? "2" : "", 2);
                                 Response.Write("Code=0 Invalid Mobile Number");
                             }
                         }
                         else
                         {
-                            importnum.ImportInvalidRequest(userId, username, messageid, senderid, message, DateTime.Now.ToString("yyyyMMddHHmmss"), mobileno, "USED DEACTIVE FAILED.", isUnicode ? "2" : "");
+                            importnum.ImportInvalidRequest(userId, username, messageid, senderid, message, DateTime.Now.ToString("yyyyMMddHHmmss"), mobileno, "USED DEACTIVE FAILED.", isUnicode ? "2" : "", 3);
                             this.Response.Write("Code=0 User Account De-Activated");
                         }
                     }

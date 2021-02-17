@@ -42,7 +42,7 @@ namespace sms_submit
             }
         }
 
-        public static int ImportInvalidRequest(string userId, string username, string messageId, string senderId, string message, string senddate, string mobileno, string status, string coding)
+        public static int ImportInvalidRequest(string userId, string username, string messageId, string senderId, string message, string senddate, string mobileno, string status, string coding, int type)
         {
             int creditCount = GetCredit(message, coding);
 
@@ -61,11 +61,11 @@ namespace sms_submit
 
                 if (coding == "2" || coding == "3")
                 {
-                    InsertOrUpdateInvalidrequestCount(username, creditCount, 0, senderId);
+                    InsertOrUpdateInvalidrequestCount(username, creditCount, 0, senderId, type);
                 }
                 else
                 {
-                    InsertOrUpdateInvalidrequestCount(username, 0, creditCount, senderId);
+                    InsertOrUpdateInvalidrequestCount(username, 0, creditCount, senderId, type);
                 }
 
             }
@@ -74,16 +74,38 @@ namespace sms_submit
 
         }
 
-        public static void InsertOrUpdateInvalidrequestCount(string username, int usms, int nsms, string senderid)
+        public static void InsertOrUpdateInvalidrequestCount(string username, int usms, int nsms, string senderid, int type)
         {
 
             var uscId = string.Format("{0}{1}{2}", username, senderid, DateTime.Now.ToString("yyyyMMdd"));
-            var sql = $@"INSERT INTO usc_smscount_iifl (username, usms, nsms, senderid,scdate,send_date,mobilecount,usc_id)
+            var sql = "";
+            if (type == 1)
+            {
+                sql = $@"INSERT INTO usc_smscount_iifl (username, usms, nsms, senderid,scdate,send_date,mobilecount,usc_id)
                                     VALUES ('{username}',{usms},{nsms},'{senderid}',now(),{DateTime.Now.ToString("yyyyMMdd")},1, '{uscId}')
                                     ON DUPLICATE KEY UPDATE
                                      usms = usms+{usms},
                                       nsms = nsms+{nsms},
-                                      mobilecount = mobilecount+1;";
+                                      templatefailedcount = templatefailedcount+1;";
+            }
+            else if (type == 2)
+            {
+                sql = $@"INSERT INTO usc_smscount_iifl (username, usms, nsms, senderid,scdate,send_date,mobilecount,usc_id)
+                                    VALUES ('{username}',{usms},{nsms},'{senderid}',now(),{DateTime.Now.ToString("yyyyMMdd")},1, '{uscId}')
+                                    ON DUPLICATE KEY UPDATE
+                                     usms = usms+{usms},
+                                      nsms = nsms+{nsms},
+                                      invalidmobilecount = invalidmobilecount+1;";
+            }
+            else
+            {
+                sql = $@"INSERT INTO usc_smscount_iifl (username, usms, nsms, senderid,scdate,send_date,mobilecount,usc_id)
+                                    VALUES ('{username}',{usms},{nsms},'{senderid}',now(),{DateTime.Now.ToString("yyyyMMdd")},1, '{uscId}')
+                                    ON DUPLICATE KEY UPDATE
+                                     usms = usms+{usms},
+                                      nsms = nsms+{nsms},
+                                      othercount = othercount+1;";
+            }
             var rowInserted = DL.DL_ExecuteSimpleNonQuery(sql);
         }
 
