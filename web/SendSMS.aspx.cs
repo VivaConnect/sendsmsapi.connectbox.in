@@ -78,7 +78,7 @@ namespace web
                                         this.Response.Write("Code=0 SendSMS Pageload");
 
                                 }
-                                else if (Util.MatchTemplate(username, senderid, message))
+                                else if (Util.isTemplateMatched(senderid, message))
                                 {
 
                                     int num = importnum.importdata(username, password, senderid, cdmaheader, message, mobileno, messageid, 0);

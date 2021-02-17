@@ -8,6 +8,9 @@ using System.Configuration;
 using sms_submit;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using System.Text;
+using Web.classes;
+using Newtonsoft.Json;
 
 namespace web.classes
 {
@@ -27,6 +30,73 @@ namespace web.classes
             return false;
         }
 
+        public static bool isTemplateMatched(string SenderId,string Message) {
+            List<string> getDLTresponse = new List<string>();
+            getDLTresponse = DltResponse(new string[] { SenderId }, new string[] { Message });
+            return getDLTresponse.Count > 0;
+        }
+
+        public static List<string> DltResponse(string[] senderIds, string[] messages)
+        {
+            StringBuilder sb_dlt = new StringBuilder();
+            for (int i = 0; i < senderIds.Length; i++)
+            {
+                sb_dlt.Append("{\"message\":\"" + messages[i] + "\",\"senderId\":\"" + senderIds[i] + "\"},");
+            }
+            return GetDLTResponse(sb_dlt);
+        }
+        public static List<string> GetDLTResponse(StringBuilder message)
+        {
+            try
+            {
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["template_URL"].ToString());
+                webRequest.ContentType = "application/json;charset=utf-8";
+                webRequest.Headers.Add("Authorization", ConfigurationManager.AppSettings["dlt_auth_token"].ToString());
+                webRequest.Method = "POST";
+                webRequest.KeepAlive = true;
+                webRequest.Timeout = 5000000;
+                var xml = "{\"data\":[" + message.ToString().TrimEnd(',') + "]}";
+                ____logconfig.Log_Write(____logconfig.LogLevel.INFO, 0, "Request =>" + xml, "DLT Template Match");
+                StreamWriter stOut = new StreamWriter(webRequest.GetRequestStream(), System.Text.Encoding.UTF8);
+                stOut.Write(xml);
+                stOut.Close();
+                StreamReader stIn = new StreamReader(webRequest.GetResponse().GetResponseStream());
+                string strResponse = stIn.ReadToEnd();
+                stIn.Close();
+                ParseTemplateResponse(strResponse, out List<string> templateIds);
+                return templateIds;
+            }
+            catch (Exception ex)
+            {
+                ____logconfig.Error_Write(____logconfig.LogLevel.EXC, 0, ex, "DLT Template Error");
+                return new List<string>();
+            }
+        }
+        public static void ParseTemplateResponse(string resp, out List<string> templateIds)
+        {
+            ____logconfig.Log_Write(____logconfig.LogLevel.INFO, 0, "Response =>" + resp, "DLT Template Match");
+            templateIds = new List<string>();
+            var parse = JsonConvert.DeserializeObject<DltTemplateResponse>(resp);
+            if (parse.code == "2000")
+            {
+                var dataObject = JsonConvert.DeserializeObject<DltTemplateResponseResult>(JsonConvert.SerializeObject(parse.data));
+                if (dataObject.message.Contains("complete"))
+                {
+
+                    foreach (var item in dataObject.result)
+                    {
+                        string[] data = item.ToString().Split(':');
+                        var Id = data[1].Replace("}", "").Replace("\"", "").Trim();
+                        templateIds.Add(Id);
+                    }
+                    ____logconfig.Log_Write(____logconfig.LogLevel.INFO, 0, "Response parse =>" + string.Join(",", templateIds), "DLT Template Match");
+                }
+                else
+                {
+                    ____logconfig.Log_Write(____logconfig.LogLevel.INFO, 0, "Response parse => Failed in not verified", "DLT Template Match");
+                }
+            }
+        }
         public static string MakehttpGetCall(string uri)
         {
             try
