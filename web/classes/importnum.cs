@@ -7,7 +7,7 @@ namespace sms_submit
 {
     public class importnum
     {
-        public static int importdata(string username, string password, string senderid, string cdmaheader, string message, string mobileno, string messageid, int isUnicode,long peId,long templateid)
+        public static int importdata(string username, string password, string senderid, string cdmaheader, string message, string mobileno, string messageid, int isUnicode, long peId, long templateid)
         {
             try
             {
@@ -25,12 +25,12 @@ namespace sms_submit
                     if (index < num2)
                     {
                         string str = string.Join(",", strArray, index * count1, count1);
-                        num1 = DL.DL_ExecuteSimpleNonQuery("insert into " + ConfigurationManager.AppSettings["InsertTable"] + " ( username, password, senderid, cdmaheader, messageid, message, date_time, mobileno,is_unicode)  values('" + MySqlHelper.EscapeString(username) + "', '" + MySqlHelper.EscapeString(password) + "', '" + MySqlHelper.EscapeString(senderid) + "', '" + MySqlHelper.EscapeString(cdmaheader) + "', '" + MySqlHelper.EscapeString(messageid) + "', '" + MySqlHelper.EscapeString(message) + "',now(), '" + str + "'," + isUnicode + ")");
+                        num1 = DL.DL_ExecuteSimpleNonQuery("insert into " + ConfigurationManager.AppSettings["InsertTable"] + " ( username, password, senderid, cdmaheader, messageid, message, date_time, mobileno,is_unicode,peId,templateid)  values('" + MySqlHelper.EscapeString(username) + "', '" + MySqlHelper.EscapeString(password) + "', '" + MySqlHelper.EscapeString(senderid) + "', '" + MySqlHelper.EscapeString(cdmaheader) + "', '" + MySqlHelper.EscapeString(messageid) + "', '" + MySqlHelper.EscapeString(message) + "',now(), '" + str + "'," + isUnicode + "," + peId + "," + templateid + ")");
                     }
                     else if (count2 != 0)
                     {
                         string str = string.Join(",", strArray, index * count1, count2);
-                        num1 = DL.DL_ExecuteSimpleNonQuery("insert into " + ConfigurationManager.AppSettings["InsertTable"] + " ( username, password, senderid, cdmaheader, messageid, message, date_time, mobileno,is_unicode)  values('" + MySqlHelper.EscapeString(username) + "', '" + MySqlHelper.EscapeString(password) + "', '" + MySqlHelper.EscapeString(senderid) + "', '" + MySqlHelper.EscapeString(cdmaheader) + "', '" + MySqlHelper.EscapeString(messageid) + "', '" + MySqlHelper.EscapeString(message) + "',now(), '" + str + "'," + isUnicode + ")");
+                        num1 = DL.DL_ExecuteSimpleNonQuery("insert into " + ConfigurationManager.AppSettings["InsertTable"] + " ( username, password, senderid, cdmaheader, messageid, message, date_time, mobileno,is_unicode,peId,templateid)  values('" + MySqlHelper.EscapeString(username) + "', '" + MySqlHelper.EscapeString(password) + "', '" + MySqlHelper.EscapeString(senderid) + "', '" + MySqlHelper.EscapeString(cdmaheader) + "', '" + MySqlHelper.EscapeString(messageid) + "', '" + MySqlHelper.EscapeString(message) + "',now(), '" + str + "'," + isUnicode + "," + peId + "," + templateid + ")");
                     }
                 }
                 return num1;
