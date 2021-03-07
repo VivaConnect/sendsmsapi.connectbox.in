@@ -7,7 +7,7 @@ namespace sms_submit
 {
     public class importnum
     {
-        public static int importdata(string username, string password, string senderid, string cdmaheader, string message, string mobileno, string messageid, int isUnicode)
+        public static int importdata(string username, string password, string senderid, string cdmaheader, string message, string mobileno, string messageid, int isUnicode,long peId,long templateid)
         {
             try
             {
